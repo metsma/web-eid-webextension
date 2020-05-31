@@ -1,11 +1,11 @@
-import { hostFromUrl, toBase64, pick, toObject } from "../../shared/utils";
-import { OnHeadersReceivedDetails, CertificateInfo } from "../../models/Browser/WebRequest";
-import AwaitingResponseMap from "../../models/AwaitingResponseMap";
+import Action from "web-eid/models/Action";
+import { serializeError } from "web-eid/utils/errorSerializer";
+import ProtocolInsecureError from "web-eid/errors/ProtocolInsecureError";
+
+import { toBase64, pick } from "../../shared/utils";
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
-import HttpResponse from "../../models/HttpResponse";
 import TypedMap from "../../models/TypedMap";
-import Action from "web-eid/models/Action";
 
 export default async function authenticate(
   getAuthChallengeUrl: string,
@@ -15,6 +15,14 @@ export default async function authenticate(
   let nativeAppService;
 
   try {
+    if (!getAuthChallengeUrl.startsWith("https:")) {
+      throw new ProtocolInsecureError(`HTTPS required for getAuthChallengeUrl ${getAuthChallengeUrl}`);
+    }
+
+    if (!postAuthTokenUrl.startsWith("https:")) {
+      throw new ProtocolInsecureError(`HTTPS required for postAuthTokenUrl ${postAuthTokenUrl}`);
+    }
+
     webServerService = new WebServerService();
     nativeAppService = new NativeAppService();
 
@@ -68,9 +76,8 @@ export default async function authenticate(
     console.error("action/authenticate", error);
 
     return {
-      ...toObject(error),
-
       action: Action.AUTHENTICATE_FAILURE,
+      error:  serializeError(error),
     };
   } finally {
     if (nativeAppService) nativeAppService.close();

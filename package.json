@@ -26,6 +26,7 @@
     "rimraf": "^3.0.2",
     "rollup": "^2.8.2",
     "typescript": "^3.8.3",
-    "web-eid": "git+ssh://git@gitlab.com/web-eid/webextension/web-eid-library.git"
-  }
+    "web-eid": "git+ssh://git@gitlab.com/web-eid/webextension/web-eid-library.git#0.0.3"
+  },
+  "dependencies": {}
 }

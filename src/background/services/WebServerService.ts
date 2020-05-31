@@ -2,6 +2,12 @@ import { OnHeadersReceivedDetails, CertificateInfo, Fingerprint } from "../../mo
 import { iterableToObject } from "../../shared/utils";
 import HttpResponse from "../../models/HttpResponse";
 
+import TlsConnectionBrokenError from "web-eid/errors/TlsConnectionBrokenError";
+import TlsConnectionInsecureError from "web-eid/errors/TlsConnectionInsecureError";
+import TlsConnectionWeakError from "web-eid/errors/TlsConnectionWeakError";
+import CertificateChangedError from "web-eid/errors/CertificateChangedError";
+import ServerRejectedError from "web-eid/errors/ServerRejectedError";
+
 export default class WebServerService {
   private fingerprints: Fingerprint[];
 
@@ -16,6 +22,8 @@ export default class WebServerService {
   async fetch<T>(fetchUrl: string, init?: RequestInit): Promise<HttpResponse<T>> {
     let certificateInfo: CertificateInfo | null;
 
+    let fetchError: Error | null = null;
+
     certificateInfo = null;
 
     const onHeadersReceivedListener = async (details: OnHeadersReceivedDetails): Promise<any> => {
@@ -24,18 +32,38 @@ export default class WebServerService {
         { rawDER: true }
       );
 
-      if (["secure", "weak"].includes(securityInfo?.state)) {
-        certificateInfo = securityInfo.certificates[0];
+      switch (securityInfo.state) {
+        case "secure": {
+          certificateInfo = securityInfo.certificates[0];
 
-        this.fingerprints.push(certificateInfo.fingerprint);
+          this.fingerprints.push(certificateInfo.fingerprint);
 
-        if (this.hasCertificateChanged()) {
+          if (this.hasCertificateChanged()) {
+            fetchError = new CertificateChangedError();
+            return { cancel: true };
+          }
 
-
-          return {
-            cancel: true,
-          };
+          break;
         }
+
+        case "broken": {
+          fetchError = new TlsConnectionBrokenError(`TLS connection was broken while requesting ${fetchUrl}`);
+          return { cancel: true };
+        }
+
+        case "insecure": {
+          fetchError = new TlsConnectionInsecureError(`TLS connection was insecure while requesting ${fetchUrl}`);
+          return { cancel: true };
+        }
+
+        case "weak": {
+          fetchError = new TlsConnectionWeakError(`TLS connection was weak while requesting ${fetchUrl}`);
+          return { cancel: true };
+        }
+
+        default:
+          fetchError = new Error("Unexpected connection security state");
+          return { cancel: true };
       }
     };
 
@@ -45,48 +73,57 @@ export default class WebServerService {
       ["blocking"]
     );
 
+    let response;
+
     try {
-      const response = await fetch(fetchUrl, init);
-
-      const headers  = iterableToObject(response.headers);
-
-      const body = (
-        headers["content-type"]?.includes("application/json")
-          ? (await response.json())
-          : (await response.text())
-      ) as T;
-
-      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
-
-      console.log("fingerprints", this.fingerprints);
-
-      const {
-        ok,
-        redirected,
-        status,
-        statusText,
-        type,
-        url,
-      } = response;
-
-      return {
-        certificateInfo,
-        ok,
-        redirected,
-        status,
-        statusText,
-        type,
-        url,
-        body,
-        headers,
-      };
+      response = await fetch(fetchUrl, init);
     } catch (error) {
-      if (this.hasCertificateChanged()) {
-        throw new Error("Server certificate changed during authentication");
-      } else {
-        throw error;
-      }
+      throw fetchError || error;
     }
+
+    const headers  = iterableToObject(response.headers);
+
+    const body = (
+      headers["content-type"]?.includes("application/json")
+        ? (await response.json())
+        : (await response.text())
+    ) as T;
+
+    browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+
+    console.log("fingerprints", this.fingerprints);
+
+    const {
+      ok,
+      redirected,
+      status,
+      statusText,
+      type,
+      url,
+    } = response;
+
+    const result = {
+      certificateInfo,
+      ok,
+      redirected,
+      status,
+      statusText,
+      type,
+      url,
+      body,
+      headers,
+    };
+
+    if (!ok) {
+      fetchError = new ServerRejectedError();
+      Object.assign(fetchError, { request: result });
+    }
+
+    if (fetchError) {
+      throw fetchError;
+    }
+
+    return result;
   }
 
   async getCertificateInfo(request: OnHeadersReceivedDetails): Promise<CertificateInfo | null> {

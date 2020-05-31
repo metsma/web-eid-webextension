@@ -1,8 +1,8 @@
 import Action from "web-eid/models/Action";
+import { serializeError } from "web-eid/utils/errorSerializer";
 
 import NativeAppService from "../services/NativeAppService";
 import config from "../../config";
-import { toObject } from "../../shared/utils";
 
 declare global {
   interface Window {
@@ -30,10 +30,9 @@ export default async function getStatus(options?: any): Promise<any> {
     console.error("onStatus error", error);
 
     return {
-      ...toObject(error),
-      extension,
-
       action: Action.STATUS_FAILURE,
+      error:  serializeError(error),
+      extension,
     };
   }
 }
