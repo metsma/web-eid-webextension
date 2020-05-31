@@ -1,7 +1,8 @@
-import { Port } from "../../models/Browser/Runtime";
-import config from "../../config";
 import NativeUnavailableError from "web-eid/errors/NativeUnavailableError";
 import UserCancelledError from "web-eid/errors/UserCancelledError";
+
+import config from "../../config";
+import { Port } from "../../models/Browser/Runtime";
 import { nextMessage } from "../../shared/messageUtils";
 
 type NativeAppPendingRequest = { reject?: Function; resolve?: Function } | null;
@@ -40,59 +41,13 @@ export default class NativeAppService {
     }
   }
 
-  /*
-  async connectOld(): Promise<void> {
-
-    return new Promise((resolve, reject) => {
-      let onResponse: Function | null = null;
-
-      this.pending = { resolve, reject };
-      this.port    = browser.runtime.connectNative(config.NATIVE_APP_NAME);
-
-      this.port.onDisconnect.addListener(this.disconnectListener.bind(this));
-
-
-
-      const connectTimer = setTimeout(() => {
-        if (onResponse) {
-          this.port?.onMessage.removeListener(onResponse);
-        }
-
-        reject(new NativeUnavailableError(this.port?.error.message));
-
-        this.pending = null;
-      }, 10000);
-
-
-
-      onResponse = (message: any): void => {
-        clearTimeout(connectTimer);
-        if (onResponse) {
-          this.port?.onMessage.removeListener(onResponse);
-        }
-
-        if (message.version) {
-          resolve(message);
-        } else {
-          console.error("Unable to connect to native app", message);
-          reject(new NativeUnavailableError());
-        }
-
-        this.pending = null;
-      };
-
-      this.port?.onMessage.addListener(onResponse);
-    });
-  }
-  */
-
   disconnectListener(): void {
     this.status = NativeAppStatus.DISCONNECTED;
     this.pending?.reject?.(new UserCancelledError());
   }
 
   close(error?: any): void {
-    console.log("Disconnecting...");
+    console.log("Disconnecting from native app");
     this.status = NativeAppStatus.DISCONNECTED;
 
     this.pending?.reject?.(error);
@@ -126,7 +81,7 @@ export default class NativeAppService {
 
         this.port?.onMessage.addListener(onResponse);
 
-        console.log("sending message", JSON.stringify(message));
+        console.log("Sending message to native app", JSON.stringify(message));
         this.port?.postMessage(message);
       });
     }

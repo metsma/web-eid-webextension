@@ -1,12 +1,12 @@
 import Action from "web-eid/models/Action";
-import { serializeError } from "web-eid/utils/errorSerializer";
 import ProtocolInsecureError from "web-eid/errors/ProtocolInsecureError";
 import UserTimeoutError from "web-eid/errors/UserTimeoutError";
+import { serializeError } from "web-eid/utils/errorSerializer";
 
-import { toBase64, pick } from "../../shared/utils";
+import TypedMap from "../../models/TypedMap";
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
-import TypedMap from "../../models/TypedMap";
+import { toBase64, pick } from "../../shared/utils";
 
 export default async function authenticate(
   getAuthChallengeUrl: string,
@@ -31,9 +31,11 @@ export default async function authenticate(
 
     const nativeAppStatus = await nativeAppService.connect();
 
-    console.log("Ready!", nativeAppStatus);
+    console.log("Authenticate: connected to native", nativeAppStatus);
 
     const response = await webServerService.fetch<{ challenge: string }>(getAuthChallengeUrl);
+
+    console.log("Authenticate: getAuthChallengeUrl fetched");
 
     const timeoutTime = (+ new Date()) + timeout;
 
@@ -60,6 +62,8 @@ export default async function authenticate(
       },
     });
 
+    console.log("Authenticate: challenge solved");
+
     clearInterval(timeoutCheckInterval);
 
     const tokenResponse = await webServerService.fetch<any>(postAuthTokenUrl, {
@@ -71,6 +75,8 @@ export default async function authenticate(
 
       body: JSON.stringify({ token }),
     });
+
+    console.log("Authenticate: token accepted by the server");
 
     return {
       action: Action.AUTHENTICATE_SUCCESS,

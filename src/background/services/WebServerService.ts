@@ -1,12 +1,13 @@
-import { OnHeadersReceivedDetails, CertificateInfo, Fingerprint } from "../../models/Browser/WebRequest";
-import { iterableToObject } from "../../shared/utils";
-import HttpResponse from "../../models/HttpResponse";
-
 import TlsConnectionBrokenError from "web-eid/errors/TlsConnectionBrokenError";
 import TlsConnectionInsecureError from "web-eid/errors/TlsConnectionInsecureError";
 import TlsConnectionWeakError from "web-eid/errors/TlsConnectionWeakError";
 import CertificateChangedError from "web-eid/errors/CertificateChangedError";
 import ServerRejectedError from "web-eid/errors/ServerRejectedError";
+
+import { OnHeadersReceivedDetails, CertificateInfo, Fingerprint } from "../../models/Browser/WebRequest";
+import HttpResponse from "../../models/HttpResponse";
+import { iterableToObject } from "../../shared/utils";
+
 
 export default class WebServerService {
   private fingerprints: Fingerprint[];
@@ -90,8 +91,6 @@ export default class WebServerService {
     ) as T;
 
     browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
-
-    console.log("fingerprints", this.fingerprints);
 
     const {
       ok,

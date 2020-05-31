@@ -1,12 +1,10 @@
-import { LibraryMessage, StatusRequestMessage, AuthenticateRequestMessage } from "../models/LibraryMessage";
 import Action from "web-eid/models/Action";
+
+import { LibraryMessage } from "../models/LibraryMessage";
 import authenticate from "./actions/authenticate";
 import getStatus from "./actions/getStatus";
 
-// If we want an instance of the native app per request
-browser.runtime.onMessage.addListener((message: LibraryMessage, sender) => {
-  console.log("background", message);
-
+browser.runtime.onMessage.addListener((message: LibraryMessage) => {
   switch (message.action) {
     case Action.AUTHENTICATE:
       return authenticate(message.getAuthChallengeUrl, message.postAuthTokenUrl, message.timeout);
