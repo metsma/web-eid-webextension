@@ -10,7 +10,7 @@ declare global {
   }
 }
 
-export default async function getStatus(options?: any): Promise<any> {
+export default async function getStatus(): Promise<any> {
   const extension = config.VERSION;
 
   try {

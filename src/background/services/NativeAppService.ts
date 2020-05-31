@@ -91,15 +91,15 @@ export default class NativeAppService {
     this.pending?.reject?.(new UserCancelledError());
   }
 
-  close(): void {
+  close(error?: any): void {
     console.log("Disconnecting...");
     this.status = NativeAppStatus.DISCONNECTED;
 
+    this.pending?.reject?.(error);
     this.port?.disconnect();
-    this.pending?.reject?.();
   }
 
-  send<T extends object>(message: object, options?: object): Promise<T> {
+  send<T extends object>(message: object): Promise<T> {
     if (this.status === NativeAppStatus.UNINITIALIZED) {
       return Promise.reject(
         new Error("unable to send message, native application port is not initialized yet")

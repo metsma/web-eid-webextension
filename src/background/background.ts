@@ -9,7 +9,7 @@ browser.runtime.onMessage.addListener((message: LibraryMessage, sender) => {
 
   switch (message.action) {
     case Action.AUTHENTICATE:
-      return authenticate(message.getAuthChallengeUrl, message.postAuthTokenUrl);
+      return authenticate(message.getAuthChallengeUrl, message.postAuthTokenUrl, message.timeout);
 
     case Action.STATUS:
       return getStatus();

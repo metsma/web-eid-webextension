@@ -1,6 +1,7 @@
 import Action from "web-eid/models/Action";
 import { serializeError } from "web-eid/utils/errorSerializer";
 import ProtocolInsecureError from "web-eid/errors/ProtocolInsecureError";
+import UserTimeoutError from "web-eid/errors/UserTimeoutError";
 
 import { toBase64, pick } from "../../shared/utils";
 import NativeAppService from "../services/NativeAppService";
@@ -10,9 +11,11 @@ import TypedMap from "../../models/TypedMap";
 export default async function authenticate(
   getAuthChallengeUrl: string,
   postAuthTokenUrl: string,
+  timeout: number,
 ): Promise<object | void> {
-  let webServerService;
-  let nativeAppService;
+  let webServerService: WebServerService | undefined;
+  let nativeAppService: NativeAppService | undefined;
+  let timeoutCheckInterval: any;
 
   try {
     if (!getAuthChallengeUrl.startsWith("https:")) {
@@ -32,6 +35,17 @@ export default async function authenticate(
 
     const response = await webServerService.fetch<{ challenge: string }>(getAuthChallengeUrl);
 
+    const timeoutTime = (+ new Date()) + timeout;
+
+    timeoutCheckInterval = setInterval(
+      () => {
+        if ((+ new Date()) > timeoutTime) {
+          clearInterval(timeoutCheckInterval);
+          nativeAppService?.close(new UserTimeoutError());
+        }
+      }
+    );
+
     const token = await nativeAppService.send({
       command: "authenticate",
 
@@ -45,6 +59,8 @@ export default async function authenticate(
         ),
       },
     });
+
+    clearInterval(timeoutCheckInterval);
 
     const tokenResponse = await webServerService.fetch<any>(postAuthTokenUrl, {
       method: "POST",
@@ -80,6 +96,7 @@ export default async function authenticate(
       error:  serializeError(error),
     };
   } finally {
+    clearInterval(timeoutCheckInterval);
     if (nativeAppService) nativeAppService.close();
   }
 }
