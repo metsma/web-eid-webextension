@@ -7,7 +7,7 @@
 
   "browser_specific_settings": {
     "gecko": {
-      "id": "web-eid-webextension@ria.ee"
+      "id": "web-eid-webextension-DEVELOPMENT-MODE-MOCK-ID@web-eid.eu"
     }
   },
 
