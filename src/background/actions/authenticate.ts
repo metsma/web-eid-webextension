@@ -33,7 +33,7 @@ export default async function authenticate(
 
     console.log("Authenticate: connected to native", nativeAppStatus);
 
-    const response = await webServerService.fetch<{ challenge: string }>(getAuthChallengeUrl);
+    const response = await webServerService.fetch<{ nonce: string }>(getAuthChallengeUrl);
 
     console.log("Authenticate: getAuthChallengeUrl fetched");
 
@@ -52,7 +52,7 @@ export default async function authenticate(
       command: "authenticate",
 
       arguments: {
-        "nonce":       response.body.challenge,
+        "nonce":       response.body.nonce,
         "origin":      (new URL(response.url)).origin,
         "origin-cert": (
           response.certificateInfo?.rawDER
@@ -73,7 +73,7 @@ export default async function authenticate(
         "Content-Type": "application/json",
       },
 
-      body: JSON.stringify({ token }),
+      body: JSON.stringify(token),
     });
 
     console.log("Authenticate: token accepted by the server");
