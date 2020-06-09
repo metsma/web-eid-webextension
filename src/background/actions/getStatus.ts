@@ -29,6 +29,8 @@ export default async function getStatus(): Promise<any> {
   } catch (error) {
     error.extension = extension;
 
+    console.error("Status:", error);
+
     return {
       action: Action.STATUS_FAILURE,
       error:  serializeError(error),

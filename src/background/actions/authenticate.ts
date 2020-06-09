@@ -95,7 +95,7 @@ export default async function authenticate(
       },
     };
   } catch (error) {
-    console.error("action/authenticate", error);
+    console.error("Authenticate:", error);
 
     return {
       action: Action.AUTHENTICATE_FAILURE,
