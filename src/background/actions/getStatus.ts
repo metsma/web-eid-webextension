@@ -27,10 +27,11 @@ export default async function getStatus(): Promise<any> {
       action: Action.STATUS_SUCCESS,
     };
   } catch (error) {
+    error.extension = extension;
+
     return {
       action: Action.STATUS_FAILURE,
       error:  serializeError(error),
-      extension,
     };
   }
 }
