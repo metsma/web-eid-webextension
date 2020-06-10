@@ -107,6 +107,11 @@ export function sleep(milliseconds: number): Promise<void> {
   });
 }
 
+export async function nightmare(milliseconds: number, error: any): Promise<void> {
+  await sleep(milliseconds);
+  throw error;
+}
+
 export function toObject(objectLike: any): object {
   if (!objectLike) return {};
 

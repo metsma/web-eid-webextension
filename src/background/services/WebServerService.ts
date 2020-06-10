@@ -115,7 +115,18 @@ export default class WebServerService {
 
     if (!ok) {
       fetchError = new ServerRejectedError();
-      Object.assign(fetchError, { request: result });
+      Object.assign(fetchError, {
+        response: {
+          ok,
+          redirected,
+          status,
+          statusText,
+          type,
+          url,
+          body,
+          headers,
+        },
+      });
     }
 
     if (fetchError) {

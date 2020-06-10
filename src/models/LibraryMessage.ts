@@ -12,5 +12,6 @@ export interface AuthenticateRequestMessage extends Object {
   action: Action.AUTHENTICATE;
   getAuthChallengeUrl: string;
   postAuthTokenUrl: string;
-  timeout: number;
+  userInteractionTimeout: number;
+  serverRequestTimeout: number;
 }

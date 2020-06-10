@@ -1,5 +1,6 @@
 import NativeUnavailableError from "web-eid/errors/NativeUnavailableError";
 import UserCancelledError from "web-eid/errors/UserCancelledError";
+import libraryConfig from "web-eid/config";
 
 import config from "../../config";
 import { Port } from "../../models/Browser/Runtime";
@@ -27,17 +28,38 @@ export default class NativeAppService {
     this.port.onDisconnect.addListener(this.disconnectListener.bind(this));
 
     try {
-      const message = await nextMessage(this.port, 10000);
+      const message = await nextMessage(this.port, libraryConfig.NATIVE_APP_HANDSHAKE_TIMEOUT);
 
       if (message.version) {
         this.status = NativeAppStatus.CONNECTED;
 
         return message;
-      } else {
+      }
+
+      if (message) {
+        throw new NativeUnavailableError(
+          `expected native application to reply with a version, got ${JSON.stringify(message)}`
+        );
+      } else if (this.port.error) {
         throw new NativeUnavailableError(this.port.error.message);
+      } else {
+        throw new NativeUnavailableError("unexpected error");
       }
     } catch (error) {
-      throw new NativeUnavailableError(error?.message || this.port.error.message);
+      if (typeof error == "string") {
+        throw new NativeUnavailableError(
+          `${error} during handshake` +
+          (this.port.error ? ` "${this.port.error.message}"` : "")
+        );
+      } else if (error instanceof NativeUnavailableError) {
+        throw error;
+      } else if (error?.message) {
+        throw new NativeUnavailableError(error?.message);
+      } else if (this.port.error?.message) {
+        throw new NativeUnavailableError(this.port.error.message);
+      } else {
+        throw new NativeUnavailableError("unexpected error");
+      }
     }
   }
 

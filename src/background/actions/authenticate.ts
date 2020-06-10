@@ -1,21 +1,23 @@
 import Action from "web-eid/models/Action";
 import ProtocolInsecureError from "web-eid/errors/ProtocolInsecureError";
 import UserTimeoutError from "web-eid/errors/UserTimeoutError";
+import ServerTimeoutError from "web-eid/errors/ServerTimeoutError";
 import { serializeError } from "web-eid/utils/errorSerializer";
 
 import TypedMap from "../../models/TypedMap";
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
-import { toBase64, pick } from "../../shared/utils";
+import { toBase64, pick, nightmare } from "../../shared/utils";
+import HttpResponse from "src/models/HttpResponse";
 
 export default async function authenticate(
   getAuthChallengeUrl: string,
   postAuthTokenUrl: string,
-  timeout: number,
+  userInteractionTimeout: number,
+  serverRequestTimeout: number,
 ): Promise<object | void> {
   let webServerService: WebServerService | undefined;
   let nativeAppService: NativeAppService | undefined;
-  let timeoutCheckInterval: any;
 
   try {
     if (!getAuthChallengeUrl.startsWith("https:")) {
@@ -33,48 +35,55 @@ export default async function authenticate(
 
     console.log("Authenticate: connected to native", nativeAppStatus);
 
-    const response = await webServerService.fetch<{ nonce: string }>(getAuthChallengeUrl);
+
+    const response = await Promise.race([
+      webServerService.fetch(getAuthChallengeUrl),
+
+      nightmare(
+        serverRequestTimeout,
+        new ServerTimeoutError(`server failed to respond in time - GET ${getAuthChallengeUrl}`),
+      ),
+    ]) as HttpResponse<{ nonce: string }>;
 
     console.log("Authenticate: getAuthChallengeUrl fetched");
 
-    const timeoutTime = (+ new Date()) + timeout;
+    const token = await Promise.race([
+      nativeAppService.send({
+        command: "authenticate",
 
-    timeoutCheckInterval = setInterval(
-      () => {
-        if ((+ new Date()) > timeoutTime) {
-          clearInterval(timeoutCheckInterval);
-          nativeAppService?.close(new UserTimeoutError());
-        }
-      }
-    );
+        arguments: {
+          "nonce":  response.body.nonce,
+          "origin": (new URL(response.url)).origin,
 
-    const token = await nativeAppService.send({
-      command: "authenticate",
+          "origin-cert": (
+            response.certificateInfo?.rawDER
+              ? toBase64(response.certificateInfo?.rawDER)
+              : null
+          ),
+        },
+      }),
 
-      arguments: {
-        "nonce":       response.body.nonce,
-        "origin":      (new URL(response.url)).origin,
-        "origin-cert": (
-          response.certificateInfo?.rawDER
-            ? toBase64(response.certificateInfo?.rawDER)
-            : null
-        ),
-      },
-    });
+      nightmare(userInteractionTimeout, new UserTimeoutError()),
+    ]);
 
     console.log("Authenticate: challenge solved");
 
-    clearInterval(timeoutCheckInterval);
+    const tokenResponse = await Promise.race([
+      webServerService.fetch<any>(postAuthTokenUrl, {
+        method: "POST",
 
-    const tokenResponse = await webServerService.fetch<any>(postAuthTokenUrl, {
-      method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+        body: JSON.stringify(token),
+      }),
 
-      body: JSON.stringify(token),
-    });
+      nightmare(
+        serverRequestTimeout,
+        new ServerTimeoutError(`server failed to respond in time - POST ${postAuthTokenUrl}`),
+      ),
+    ]);
 
     console.log("Authenticate: token accepted by the server");
 
@@ -102,7 +111,6 @@ export default async function authenticate(
       error:  serializeError(error),
     };
   } finally {
-    clearInterval(timeoutCheckInterval);
     if (nativeAppService) nativeAppService.close();
   }
 }

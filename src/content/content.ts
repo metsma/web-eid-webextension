@@ -27,13 +27,24 @@ window.addEventListener("message", async (event) => {
       window.postMessage(response, event.origin);
 
     } else {
+      let response;
+
       switch (event.data.action) {
-        case Action.AUTHENTICATE:
         case Action.STATUS: {
-          const response = await send(event.data);
-          window.postMessage(response, event.origin);
+          window.postMessage({ action: Action.STATUS_ACK }, event.origin);
+          response = await send({ action: Action.STATUS });
           break;
         }
+
+        case Action.AUTHENTICATE: {
+          window.postMessage({ action: Action.AUTHENTICATE_ACK }, event.origin);
+          response = await send(event.data);
+          break;
+        }
+      }
+
+      if (response) {
+        window.postMessage(response, event.origin);
       }
     }
   }

@@ -12,7 +12,7 @@ export function nextMessage(port: Port, timeout: number): Promise<any> {
 
     const onDisconnectListener = (): void => {
       cleanup?.();
-      reject();
+      reject("native application closed connection");
     };
 
     cleanup = (): void => {
@@ -25,7 +25,7 @@ export function nextMessage(port: Port, timeout: number): Promise<any> {
     timer = setTimeout(
       () => {
         cleanup?.();
-        reject();
+        reject(`native application failed to reply in ${timeout}ms`);
       },
       timeout,
     );
