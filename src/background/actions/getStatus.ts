@@ -16,7 +16,12 @@ export default async function getStatus(): Promise<any> {
   try {
     const nativeAppService = new NativeAppService();
     const status           = await nativeAppService.connect();
-    const nativeApp        = status.version;
+
+    const nativeApp = (
+      status.version.startsWith("v")
+        ? status.version.substring(1)
+        : status.version
+    );
 
     nativeAppService.close();
 
