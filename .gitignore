@@ -28,3 +28,6 @@ ehthumbs_vista.db
 
 # Python
 __pycache__
+
+# Vim
+*.swp
