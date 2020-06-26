@@ -8,7 +8,7 @@ import { nextMessage } from "../../shared/messageUtils";
 
 type NativeAppPendingRequest = { reject?: Function; resolve?: Function } | null;
 
-enum NativeAppStatus {
+enum NativeAppState {
   UNINITIALIZED,
   CONNECTING,
   CONNECTED,
@@ -17,12 +17,12 @@ enum NativeAppStatus {
 
 export default class NativeAppService {
   private port: Port | null       = null;
-  private status: NativeAppStatus = NativeAppStatus.UNINITIALIZED;
+  private state: NativeAppState = NativeAppState.UNINITIALIZED;
 
   private pending: NativeAppPendingRequest = null;
 
   async connect(): Promise<{ version: string }> {
-    this.status = NativeAppStatus.CONNECTING;
+    this.state = NativeAppState.CONNECTING;
 
     this.port = browser.runtime.connectNative(config.NATIVE_APP_NAME);
     this.port.onDisconnect.addListener(this.disconnectListener.bind(this));
@@ -31,7 +31,7 @@ export default class NativeAppService {
       const message = await nextMessage(this.port, libraryConfig.NATIVE_APP_HANDSHAKE_TIMEOUT);
 
       if (message.version) {
-        this.status = NativeAppStatus.CONNECTED;
+        this.state = NativeAppState.CONNECTED;
 
         return message;
       }
@@ -64,21 +64,21 @@ export default class NativeAppService {
   }
 
   disconnectListener(): void {
-    this.status = NativeAppStatus.DISCONNECTED;
+    this.state = NativeAppState.DISCONNECTED;
     this.pending?.reject?.(new UserCancelledError());
   }
 
   close(error?: any): void {
     console.log("Disconnecting from native app");
-    this.status = NativeAppStatus.DISCONNECTED;
+    this.state = NativeAppState.DISCONNECTED;
 
     this.pending?.reject?.(error);
     this.port?.disconnect();
   }
 
   send<T extends object>(message: object): Promise<T> {
-    switch (this.status) {
-      case NativeAppStatus.CONNECTED: {
+    switch (this.state) {
+      case NativeAppState.CONNECTED: {
         return new Promise((resolve, reject) => {
           this.pending = { resolve, reject };
 
@@ -94,19 +94,19 @@ export default class NativeAppService {
         });
       }
 
-      case NativeAppStatus.UNINITIALIZED: {
+      case NativeAppState.UNINITIALIZED: {
         return Promise.reject(
           new Error("unable to send message, native application port is not initialized yet")
         );
       }
 
-      case NativeAppStatus.CONNECTING: {
+      case NativeAppState.CONNECTING: {
         return Promise.reject(
           new Error("unable to send message, native application port is still connecting")
         );
       }
 
-      case NativeAppStatus.DISCONNECTED: {
+      case NativeAppState.DISCONNECTED: {
         return Promise.reject(
           new Error("unable to send message, native application port is disconnected")
         );
@@ -114,7 +114,7 @@ export default class NativeAppService {
 
       default: {
         return Promise.reject(
-          new Error("unable to send message, unexpected native app status")
+          new Error("unable to send message, unexpected native app state")
         );
       }
     }
