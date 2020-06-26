@@ -17,7 +17,6 @@ export function nextMessage(port: Port, timeout: number): Promise<any> {
 
     cleanup = (): void => {
       port.onMessage.removeListener(onMessageListener);
-      port.onMessage.removeListener(onMessageListener);
       if (timer) clearTimeout(timer);
     };
 
