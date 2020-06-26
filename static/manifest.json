@@ -35,5 +35,5 @@
     "scripts": ["background.js"]
   },
 
-  "permissions": ["*://*/*", "tabs", "webRequest", "webRequestBlocking", "nativeMessaging", "tabs"]
+  "permissions": ["*://*/*", "tabs", "webRequest", "webRequestBlocking", "nativeMessaging"]
 }
