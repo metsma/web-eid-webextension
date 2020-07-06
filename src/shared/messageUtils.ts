@@ -16,10 +16,10 @@ export function nextMessage(port: Port, timeout: number): Promise<any> {
     };
 
     cleanup = (): void => {
+      port.onDisconnect.removeListener(onDisconnectListener);
       port.onMessage.removeListener(onMessageListener);
       if (timer) clearTimeout(timer);
     };
-
 
     timer = setTimeout(
       () => {
