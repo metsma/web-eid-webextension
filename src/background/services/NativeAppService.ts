@@ -4,7 +4,6 @@ import libraryConfig from "web-eid/config";
 
 import config from "../../config";
 import { Port } from "../../models/Browser/Runtime";
-import { nextMessage } from "../../shared/messageUtils";
 
 type NativeAppPendingRequest = { reject?: Function; resolve?: Function } | null;
 
@@ -28,7 +27,7 @@ export default class NativeAppService {
     this.port.onDisconnect.addListener(this.disconnectListener.bind(this));
 
     try {
-      const message = await nextMessage(this.port, libraryConfig.NATIVE_APP_HANDSHAKE_TIMEOUT);
+      const message = await this.nextMessage(libraryConfig.NATIVE_APP_HANDSHAKE_TIMEOUT);
 
       if (message.version) {
         this.state = NativeAppState.CONNECTED;
@@ -118,5 +117,43 @@ export default class NativeAppService {
         );
       }
     }
+  }
+
+  nextMessage(timeout: number): Promise<any> {
+    return new Promise((resolve, reject) => {
+      let cleanup: Function | null = null;
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const onMessageListener = (message: any): void => {
+        cleanup?.();
+        resolve(message);
+      };
+
+      const onDisconnectListener = (): void => {
+        cleanup?.();
+        reject("native application closed connection");
+      };
+
+      cleanup = (): void => {
+        this.port?.onDisconnect.removeListener(onDisconnectListener);
+        this.port?.onMessage.removeListener(onMessageListener);
+        if (timer) clearTimeout(timer);
+      };
+
+      timer = setTimeout(
+        () => {
+          cleanup?.();
+          reject(`native application failed to reply in ${timeout}ms`);
+        },
+        timeout,
+      );
+
+      if (!this.port) {
+        return reject(new Error("missing native application port"));
+      }
+
+      this.port.onDisconnect.addListener(onDisconnectListener);
+      this.port.onMessage.addListener(onMessageListener);
+    });
   }
 }
