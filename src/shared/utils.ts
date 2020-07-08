@@ -6,7 +6,7 @@ export function toBase64(byteArray: number[]): string {
   );
 }
 
-export function iterableToObject(headers: Headers): TypedMap<string> {
+export function headersToObject(headers: Headers): TypedMap<string> {
   function reducer(acc: TypedMap<string>, curr: Array<string>): TypedMap<string> {
     if (typeof curr[0] == "string") {
       acc[curr[0]] = curr[1];
@@ -15,7 +15,7 @@ export function iterableToObject(headers: Headers): TypedMap<string> {
   }
 
   const headersArray = [...headers.entries()];
-  const headersMap = headersArray.reduce(reducer, {});
+  const headersMap   = headersArray.reduce(reducer, {});
 
   return headersMap;
 }

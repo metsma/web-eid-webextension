@@ -6,7 +6,7 @@ import ServerRejectedError from "web-eid/errors/ServerRejectedError";
 
 import { OnHeadersReceivedDetails, CertificateInfo, Fingerprint } from "../../models/Browser/WebRequest";
 import HttpResponse from "../../models/HttpResponse";
-import { iterableToObject } from "../../shared/utils";
+import { headersToObject } from "../../shared/utils";
 
 
 export default class WebServerService {
@@ -82,7 +82,7 @@ export default class WebServerService {
       throw fetchError || error;
     }
 
-    const headers  = iterableToObject(response.headers);
+    const headers = headersToObject(response.headers);
 
     const body = (
       headers["content-type"]?.includes("application/json")
