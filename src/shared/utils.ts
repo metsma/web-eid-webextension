@@ -33,7 +33,7 @@ export function iterableToObject(headers: Headers): TypedMap<string> {
  *   pick(object, ["a", "b"]);
  *   // => { "a": 1, "b": 2 }
  */
-export function pick(object: TypedMap<string>, keys: string[]): object {
+export function pick(object: any, keys: string[]): object {
   return Object.keys(object)
     .filter((objectKey: string) => keys.includes(objectKey))
     .reduce((acc: TypedMap<string>, curr) => (acc[curr] = object[curr], acc), {});

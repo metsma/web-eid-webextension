@@ -4,7 +4,6 @@ import UserTimeoutError from "web-eid/errors/UserTimeoutError";
 import ServerTimeoutError from "web-eid/errors/ServerTimeoutError";
 import { serializeError } from "web-eid/utils/errorSerializer";
 
-import TypedMap from "../../models/TypedMap";
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
 import { toBase64, pick, nightmare } from "../../shared/utils";
@@ -91,7 +90,7 @@ export default async function authenticate(
       action: Action.AUTHENTICATE_SUCCESS,
 
       response: {
-        ...pick(tokenResponse as TypedMap<any>, [
+        ...pick(tokenResponse, [
           "body",
           "headers",
           "ok",
