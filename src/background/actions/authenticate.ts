@@ -34,7 +34,6 @@ export default async function authenticate(
 
     console.log("Authenticate: connected to native", nativeAppStatus);
 
-
     const response = await Promise.race([
       webServerService.fetch(getAuthChallengeUrl),
 
