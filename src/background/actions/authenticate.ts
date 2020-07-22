@@ -64,7 +64,7 @@ export default async function authenticate(
       nightmare(userInteractionTimeout, new UserTimeoutError()),
     ]);
 
-    console.log("Authenticate: challenge solved");
+    console.log("Authenticate: authentication token received");
 
     const tokenResponse = await Promise.race([
       webServerService.fetch<any>(postAuthTokenUrl, {
