@@ -1,5 +1,5 @@
 import { spawn } from "child_process";
-import path, { resolve } from "path";
+import path from "path";
 import fs from "fs";
 
 import ncp from "ncp";
@@ -15,7 +15,7 @@ export function rem(...lines) {
       console.log("# " + line);
     });
   }
-  console.log("###")
+  console.log("###");
 }
 
 export function cp(source, destination) {
@@ -32,18 +32,18 @@ export function cp(source, destination) {
   });
 }
 
-export function rm(path) {
-  console.log(`REMOVE ${path}`);
+export function rm(pathToRemove) {
+  console.log(`REMOVE ${pathToRemove}`);
 
   return new Promise((resolve, reject) => {
-    rimraf(path, (err) => {
+    rimraf(pathToRemove, (err) => {
       if (err) {
         reject(err);
       } else {
         resolve();
       }
-    })
-  })
+    });
+  });
 }
 
 export function exec(command, args = []) {
