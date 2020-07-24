@@ -65,6 +65,7 @@ export default class NativeAppService {
   disconnectListener(): void {
     this.state = NativeAppState.DISCONNECTED;
     this.pending?.reject?.(new UserCancelledError());
+    this.pending = null;
   }
 
   close(error?: any): void {
@@ -72,6 +73,7 @@ export default class NativeAppService {
     this.state = NativeAppState.DISCONNECTED;
 
     this.pending?.reject?.(error);
+    this.pending = null;
     this.port?.disconnect();
   }
 
@@ -82,8 +84,9 @@ export default class NativeAppService {
           this.pending = { resolve, reject };
 
           const onResponse = (message: T): void => {
-            resolve(message);
             this.port?.onMessage.removeListener(onResponse);
+            resolve(message);
+            this.pending = null;
           };
 
           this.port?.onMessage.addListener(onResponse);
