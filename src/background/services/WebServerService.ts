@@ -74,66 +74,63 @@ export default class WebServerService {
       ["blocking"]
     );
 
-    let response;
-
     try {
-      response = await fetch(fetchUrl, init);
-    } catch (error) {
-      throw fetchError || error;
+      const response = await fetch(fetchUrl, init);
+
+      const headers = headersToObject(response.headers);
+
+      const body = (
+        headers["content-type"]?.includes("application/json")
+          ? (await response.json())
+          : (await response.text())
+      ) as T;
+
+      const {
+        ok,
+        redirected,
+        status,
+        statusText,
+        type,
+        url,
+      } = response;
+
+      const result = {
+        certificateInfo,
+        ok,
+        redirected,
+        status,
+        statusText,
+        type,
+        url,
+        body,
+        headers,
+      };
+
+      if (!ok) {
+        fetchError = new ServerRejectedError();
+        Object.assign(fetchError, {
+          response: {
+            ok,
+            redirected,
+            status,
+            statusText,
+            type,
+            url,
+            body,
+            headers,
+          },
+        });
+      }
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      return result;
+
+    } finally {
+      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
     }
-
-    const headers = headersToObject(response.headers);
-
-    const body = (
-      headers["content-type"]?.includes("application/json")
-        ? (await response.json())
-        : (await response.text())
-    ) as T;
-
-    browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
-
-    const {
-      ok,
-      redirected,
-      status,
-      statusText,
-      type,
-      url,
-    } = response;
-
-    const result = {
-      certificateInfo,
-      ok,
-      redirected,
-      status,
-      statusText,
-      type,
-      url,
-      body,
-      headers,
-    };
-
-    if (!ok) {
-      fetchError = new ServerRejectedError();
-      Object.assign(fetchError, {
-        response: {
-          ok,
-          redirected,
-          status,
-          statusText,
-          type,
-          url,
-          body,
-          headers,
-        },
-      });
-    }
-
-    if (fetchError) {
-      throw fetchError;
-    }
-
-    return result;
   }
 
   async getCertificateInfo(request: OnHeadersReceivedDetails): Promise<CertificateInfo | null> {
