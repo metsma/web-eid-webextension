@@ -45,12 +45,11 @@ export default class NativeAppService {
         throw new NativeUnavailableError("unexpected error");
       }
     } catch (error) {
-      if (typeof error == "string") {
-        throw new NativeUnavailableError(
-          `${error} during handshake` +
-          (this.port.error ? ` "${this.port.error.message}"` : "")
-        );
-      } else if (error instanceof NativeUnavailableError) {
+      if (this.port.error) {
+        console.error(this.port.error);
+      }
+
+      if (error instanceof NativeUnavailableError) {
         throw error;
       } else if (error?.message) {
         throw new NativeUnavailableError(error?.message);
@@ -134,7 +133,9 @@ export default class NativeAppService {
 
       const onDisconnectListener = (): void => {
         cleanup?.();
-        reject("native application closed connection");
+        reject(new NativeUnavailableError(
+          "a message from native application was expected, but native application closed connection"
+        ));
       };
 
       cleanup = (): void => {
@@ -146,13 +147,15 @@ export default class NativeAppService {
       timer = setTimeout(
         () => {
           cleanup?.();
-          reject(`native application failed to reply in ${timeout}ms`);
+          reject(new NativeUnavailableError(
+            `a message from native application was expected, but message wasn't received in ${timeout}ms`
+          ));
         },
         timeout,
       );
 
       if (!this.port) {
-        return reject(new Error("missing native application port"));
+        return reject(new NativeUnavailableError("missing native application port"));
       }
 
       this.port.onDisconnect.addListener(onDisconnectListener);

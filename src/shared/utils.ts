@@ -74,7 +74,7 @@ export function sleep(milliseconds: number): Promise<void> {
   });
 }
 
-export async function throwAfterTimeout(milliseconds: number, error: any): Promise<void> {
+export async function throwAfterTimeout(milliseconds: number, error: Error): Promise<void> {
   await sleep(milliseconds);
   throw error;
 }
