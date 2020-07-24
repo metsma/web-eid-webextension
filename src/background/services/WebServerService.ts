@@ -132,20 +132,5 @@ export default class WebServerService {
       browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
     }
   }
-
-  async getCertificateInfo(request: OnHeadersReceivedDetails): Promise<CertificateInfo | null> {
-    const securityInfo = await browser.webRequest.getSecurityInfo(
-      request.requestId,
-      { rawDER: true }
-    );
-
-    const { state, certificates } = securityInfo;
-
-    if (state === "secure" || state === "weak") {
-      return certificates[0];
-    }
-
-    return null;
-  }
 }
 
