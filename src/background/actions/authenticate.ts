@@ -6,7 +6,7 @@ import { serializeError } from "web-eid/utils/errorSerializer";
 
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
-import { toBase64, pick, nightmare } from "../../shared/utils";
+import { toBase64, pick, throwAfterTimeout } from "../../shared/utils";
 import HttpResponse from "src/models/HttpResponse";
 
 export default async function authenticate(
@@ -37,7 +37,7 @@ export default async function authenticate(
     const response = await Promise.race([
       webServerService.fetch(getAuthChallengeUrl),
 
-      nightmare(
+      throwAfterTimeout(
         serverRequestTimeout,
         new ServerTimeoutError(`server failed to respond in time - GET ${getAuthChallengeUrl}`),
       ),
@@ -61,7 +61,7 @@ export default async function authenticate(
         },
       }),
 
-      nightmare(userInteractionTimeout, new UserTimeoutError()),
+      throwAfterTimeout(userInteractionTimeout, new UserTimeoutError()),
     ]);
 
     console.log("Authenticate: authentication token received");
@@ -77,7 +77,7 @@ export default async function authenticate(
         body: JSON.stringify(token),
       }),
 
-      nightmare(
+      throwAfterTimeout(
         serverRequestTimeout,
         new ServerTimeoutError(`server failed to respond in time - POST ${postAuthTokenUrl}`),
       ),
