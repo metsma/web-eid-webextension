@@ -4,12 +4,6 @@ import { serializeError } from "web-eid/utils/errorSerializer";
 import config from "../../config";
 import NativeAppService from "../services/NativeAppService";
 
-declare global {
-  interface Window {
-    nativeAppService: any;
-  }
-}
-
 export default async function getStatus(): Promise<any> {
   const extension = config.VERSION;
 

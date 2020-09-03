@@ -83,83 +83,66 @@ export default class WebServerService {
       );
     }
 
-    let response;
-
     try {
-      response = await fetch(fetchUrl, init);
-    } catch (error) {
-      throw fetchError || error;
-    }
+      const response = await fetch(fetchUrl, init);
 
-    const headers = headersToObject(response.headers);
+      const headers = headersToObject(response.headers);
 
-    const body = (
-      headers["content-type"]?.includes("application/json")
-        ? (await response.json())
-        : (await response.text())
-    ) as T;
+      const body = (
+        headers["content-type"]?.includes("application/json")
+          ? (await response.json())
+          : (await response.text())
+      ) as T;
 
     if (hasWebRequestPermission) {
       browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
     }
+      const {
+        ok,
+        redirected,
+        status,
+        statusText,
+        type,
+        url,
+      } = response;
 
-    const {
-      ok,
-      redirected,
-      status,
-      statusText,
-      type,
-      url,
-    } = response;
+      const result = {
+        certificateInfo,
+        ok,
+        redirected,
+        status,
+        statusText,
+        type,
+        url,
+        body,
+        headers,
+      };
 
-    const result = {
-      certificateInfo,
-      ok,
-      redirected,
-      status,
-      statusText,
-      type,
-      url,
-      body,
-      headers,
-    };
+      if (!ok) {
+        fetchError = new ServerRejectedError();
+        Object.assign(fetchError, {
+          response: {
+            ok,
+            redirected,
+            status,
+            statusText,
+            type,
+            url,
+            body,
+            headers,
+          },
+        });
+      }
 
-    if (!ok) {
-      fetchError = new ServerRejectedError();
-      Object.assign(fetchError, {
-        response: {
-          ok,
-          redirected,
-          status,
-          statusText,
-          type,
-          url,
-          body,
-          headers,
-        },
-      });
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      return result;
+
+    } finally {
+      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
     }
-
-    if (fetchError) {
-      throw fetchError;
-    }
-
-    return result;
-  }
-
-  async getCertificateInfo(request: OnHeadersReceivedDetails): Promise<CertificateInfo | null> {
-    const securityInfo = await browser.webRequest.getSecurityInfo(
-      request.requestId,
-      { rawDER: true }
-    );
-
-    const { state, certificates } = securityInfo;
-
-    if (state === "secure" || state === "weak") {
-      return certificates[0];
-    }
-
-    return null;
   }
 }
 
