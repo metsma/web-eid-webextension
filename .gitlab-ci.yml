@@ -1,10 +1,25 @@
-build:
-  image: node:latest
-  stage: build
+image: node:latest
+
+.build_package:
   script:
-  - npm install
-  - npm run clean build package 
+    - npm install
+    - npm run clean build package
+
+build:
+  extends: .build_package
+  stage: build
   artifacts:
     expire_in: 1 week
     paths:
       - dist
+  except:
+    - master
+
+release:
+  extends: .build_package
+  stage: deploy
+  artifacts:
+    paths:
+      - dist
+  only:
+    - master

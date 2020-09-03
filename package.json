@@ -29,7 +29,7 @@
     "rollup": "^2.8.2",
     "rollup-plugin-polyfill": "^3.0.0",
     "typescript": "^3.8.3",
-    "web-eid": "git+ssh://git@gitlab.com/web-eid/webextension/web-eid-library.git#0.0.6",
+    "@web-eid/web-eid-library": "^0.0.7",
     "webextension-polyfill": "^0.6.0"
   },
   "dependencies": {}
