@@ -1,8 +1,10 @@
 import WebRequest from "./Browser/WebRequest";
 import Runtime from "./Browser/Runtime";
+import Permissions from "./Browser/Permissions";
 
 declare global {
   const browser: Browser;
+  const chrome: any;
 }
 
 export default interface Browser {
@@ -28,4 +30,11 @@ export default interface Browser {
    * @see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/runtime
    */
   runtime: Runtime;
+
+  /**
+   * Enables discovering current extension permissions and the ability to add or remove permissions during runtime.
+   *
+   * @see https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/permissions
+   */
+  permissions: Permissions;
 }

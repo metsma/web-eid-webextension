@@ -62,6 +62,9 @@ export default class NativeAppService {
   }
 
   disconnectListener(): void {
+    // Accessing lastError when it exists stops chrome from throwing it unnecessarily.
+    chrome?.runtime?.lastError;
+
     this.state = NativeAppState.DISCONNECTED;
     this.pending?.reject?.(new UserCancelledError());
     this.pending = null;

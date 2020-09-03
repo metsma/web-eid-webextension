@@ -18,9 +18,9 @@
     npm install
     ```
 
-4. Build the project
+4. Build the project with zip packages
     ```bash
-    npm run build
+    npm run clean build package
     ```
 
 5. Load in Firefox as a Temporary Extension

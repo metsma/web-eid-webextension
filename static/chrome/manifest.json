@@ -1,20 +1,11 @@
 {
   "manifest_version": 2,
   "name": "Web eID",
-  "version": "0.0.7",
-
+  "version": "{{package.version}}",
   "description": "",
-
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "web-eid-webextension-DEVELOPMENT-MODE-MOCK-ID@web-eid.eu"
-    }
-  },
-
   "icons": {
     "128": "icons/web-eid-poc-icon-128.png"
   },
-
   "content_scripts": [
     {
       "js": [
@@ -23,17 +14,18 @@
       "matches": [
         "*://*/*"
       ]
-
     }
   ],
-
   "browser_action": {
     "default_icon": "icons/web-eid-poc-icon-128.png"
   },
-
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
-
-  "permissions": ["*://*/*", "tabs", "webRequest", "webRequestBlocking", "nativeMessaging"]
+  "permissions": [
+    "*://*/*",
+    "nativeMessaging"
+  ]
 }

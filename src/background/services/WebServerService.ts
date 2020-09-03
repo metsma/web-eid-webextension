@@ -25,6 +25,13 @@ export default class WebServerService {
 
     let fetchError: Error | null = null;
 
+    const hasWebRequestPermission = await browser.permissions.contains({
+      permissions: [
+        "webRequest",
+        "webRequestBlocking",
+      ],
+    });
+
     certificateInfo = null;
 
     const onHeadersReceivedListener = async (details: OnHeadersReceivedDetails): Promise<any> => {
@@ -68,11 +75,13 @@ export default class WebServerService {
       }
     };
 
-    browser.webRequest.onHeadersReceived.addListener(
-      onHeadersReceivedListener,
-      { urls: [fetchUrl] },
-      ["blocking"]
-    );
+    if (hasWebRequestPermission) {
+      browser.webRequest.onHeadersReceived.addListener(
+        onHeadersReceivedListener,
+        { urls: [fetchUrl] },
+        ["blocking"]
+      );
+    }
 
     try {
       const response = await fetch(fetchUrl, init);
@@ -85,6 +94,9 @@ export default class WebServerService {
           : (await response.text())
       ) as T;
 
+    if (hasWebRequestPermission) {
+      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+    }
       const {
         ok,
         redirected,
