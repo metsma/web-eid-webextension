@@ -1,4 +1,4 @@
-import Action from "web-eid/models/Action";
+import Action from "@web-eid/web-eid-library/models/Action";
 
 export type LibraryMessage
   = StatusRequestMessage

@@ -1,5 +1,5 @@
-import Action from "web-eid/models/Action";
-import { serializeError } from "web-eid/utils/errorSerializer";
+import Action from "@web-eid/web-eid-library/models/Action";
+import { serializeError } from "@web-eid/web-eid-library/utils/errorSerializer";
 
 import config from "../../config";
 import NativeAppService from "../services/NativeAppService";

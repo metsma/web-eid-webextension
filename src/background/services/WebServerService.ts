@@ -1,8 +1,8 @@
-import TlsConnectionBrokenError from "web-eid/errors/TlsConnectionBrokenError";
-import TlsConnectionInsecureError from "web-eid/errors/TlsConnectionInsecureError";
-import TlsConnectionWeakError from "web-eid/errors/TlsConnectionWeakError";
-import CertificateChangedError from "web-eid/errors/CertificateChangedError";
-import ServerRejectedError from "web-eid/errors/ServerRejectedError";
+import TlsConnectionBrokenError from "@web-eid/web-eid-library/errors/TlsConnectionBrokenError";
+import TlsConnectionInsecureError from "@web-eid/web-eid-library/errors/TlsConnectionInsecureError";
+import TlsConnectionWeakError from "@web-eid/web-eid-library/errors/TlsConnectionWeakError";
+import CertificateChangedError from "@web-eid/web-eid-library/errors/CertificateChangedError";
+import ServerRejectedError from "@web-eid/web-eid-library/errors/ServerRejectedError";
 
 import { OnHeadersReceivedDetails, CertificateInfo, Fingerprint } from "../../models/Browser/WebRequest";
 import HttpResponse from "../../models/HttpResponse";
@@ -94,10 +94,9 @@ export default class WebServerService {
           : (await response.text())
       ) as T;
 
-      if (hasWebRequestPermission) {
-        browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
-      }
-
+    if (hasWebRequestPermission) {
+      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+    }
       const {
         ok,
         redirected,
