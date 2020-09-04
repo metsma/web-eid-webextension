@@ -113,7 +113,7 @@ if (args.length) {
   })
   .catch((error) => {
     console.error(error);
-    exit(2);
+    process.exit(2);
   });
 } else {
   console.error(`Missing target. Valid targets: ${Object.keys(targets).join(", ")}`);

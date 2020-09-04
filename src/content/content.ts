@@ -1,5 +1,5 @@
-import Action from "web-eid/models/Action";
-import ContextInsecureError from "web-eid/errors/ContextInsecureError";
+import Action from "@web-eid/web-eid-library/models/Action";
+import ContextInsecureError from "@web-eid/web-eid-library/errors/ContextInsecureError";
 
 function isValidEvent(event: MessageEvent): boolean {
   return (

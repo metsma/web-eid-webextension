@@ -1,5 +1,5 @@
-import Action from "web-eid/models/Action";
-import libraryConfig from "web-eid/config";
+import Action from "@web-eid/web-eid-library/models/Action";
+import libraryConfig from "@web-eid/web-eid-library/config";
 
 import { LibraryMessage } from "../models/LibraryMessage";
 import authenticate from "./actions/authenticate";

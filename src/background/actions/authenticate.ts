@@ -1,8 +1,8 @@
-import Action from "web-eid/models/Action";
-import ProtocolInsecureError from "web-eid/errors/ProtocolInsecureError";
-import UserTimeoutError from "web-eid/errors/UserTimeoutError";
-import ServerTimeoutError from "web-eid/errors/ServerTimeoutError";
-import { serializeError } from "web-eid/utils/errorSerializer";
+import Action from "@web-eid/web-eid-library/models/Action";
+import ProtocolInsecureError from "@web-eid/web-eid-library/errors/ProtocolInsecureError";
+import UserTimeoutError from "@web-eid/web-eid-library/errors/UserTimeoutError";
+import ServerTimeoutError from "@web-eid/web-eid-library/errors/ServerTimeoutError";
+import { serializeError } from "@web-eid/web-eid-library/utils/errorSerializer";
 
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";

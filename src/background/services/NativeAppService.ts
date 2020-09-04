@@ -1,6 +1,6 @@
-import NativeUnavailableError from "web-eid/errors/NativeUnavailableError";
-import UserCancelledError from "web-eid/errors/UserCancelledError";
-import libraryConfig from "web-eid/config";
+import NativeUnavailableError from "@web-eid/web-eid-library/errors/NativeUnavailableError";
+import UserCancelledError from "@web-eid/web-eid-library/errors/UserCancelledError";
+import libraryConfig from "@web-eid/web-eid-library/config";
 
 import config from "../../config";
 import { Port } from "../../models/Browser/Runtime";
