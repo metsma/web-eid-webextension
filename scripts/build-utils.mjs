@@ -1,9 +1,7 @@
 import { spawn } from "child_process";
 import path from "path";
-import fs from "fs";
 
-import ncp from "ncp";
-import rimraf from "rimraf";
+import fs from "fs-extra"
 import archiver from "archiver";
 
 export const pkg = JSON.parse(fs.readFileSync("./package.json", 'utf8'));
@@ -21,29 +19,13 @@ export function rem(...lines) {
 export function cp(source, destination) {
   console.log(`COPY ${source} → ${destination}`);
 
-  return new Promise((resolve, reject) => {
-    ncp(source, destination, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+  return fs.copy(source, destination);
 }
 
 export function rm(pathToRemove) {
   console.log(`REMOVE ${pathToRemove}`);
 
-  return new Promise((resolve, reject) => {
-    rimraf(pathToRemove, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
+  return fs.remove(pathToRemove);
 }
 
 export function exec(command, args = []) {
