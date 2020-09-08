@@ -94,9 +94,10 @@ export default class WebServerService {
           : (await response.text())
       ) as T;
 
-    if (hasWebRequestPermission) {
-      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
-    }
+      if (hasWebRequestPermission) {
+        browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+      }
+
       const {
         ok,
         redirected,
@@ -141,7 +142,9 @@ export default class WebServerService {
       return result;
 
     } finally {
-      browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+      if (hasWebRequestPermission) {
+        browser.webRequest.onHeadersReceived.removeListener(onHeadersReceivedListener);
+      }
     }
   }
 }
