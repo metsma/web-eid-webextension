@@ -10,7 +10,7 @@ function isValidEvent(event: MessageEvent): boolean {
 
 async function send(message: object): Promise<object | void> {
   const response = await browser.runtime.sendMessage(message);
-  console.log("Content.send response", response);
+  console.log("Content send response", response);
   return response;
 }
 
@@ -20,7 +20,7 @@ window.addEventListener("message", async (event) => {
 
     if (!window.isSecureContext) {
       const response = {
-        action: Action.AUTHENTICATE_FAILURE,
+        action: event.data.action + "_FAILURE",
         error:  new ContextInsecureError(),
       };
 
@@ -38,6 +38,12 @@ window.addEventListener("message", async (event) => {
 
         case Action.AUTHENTICATE: {
           window.postMessage({ action: Action.AUTHENTICATE_ACK }, event.origin);
+          response = await send(event.data);
+          break;
+        }
+
+        case Action.SIGN: {
+          window.postMessage({ action: Action.SIGN_ACK }, event.origin);
           response = await send(event.data);
           break;
         }
