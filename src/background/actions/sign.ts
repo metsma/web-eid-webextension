@@ -52,7 +52,7 @@ export default async function sign(
     if (certificateResponse.error) {
       throw new Error(certificateResponse.error);
     } else if (!certificateResponse.certificate) {
-      throw new Error("Missing sign certificate");
+      throw new Error("Missing signing certificate");
     }
 
     console.log("Native app state", nativeAppService.state);
