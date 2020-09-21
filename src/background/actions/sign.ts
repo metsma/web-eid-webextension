@@ -47,7 +47,16 @@ export default async function sign(
       }),
 
       throwAfterTimeout(userInteractionTimeout, new UserTimeoutError()),
-    ]) as { certificate: string; error: string };
+    ]) as {
+      certificate: string;
+      error?: string;
+
+      "supported-signature-algos": Array<{
+        "crypto-algo":  string;
+        "hash-algo":    string;
+        "padding-algo": string;
+      }>;
+    };
 
     if (certificateResponse.error) {
       throw new Error(certificateResponse.error);
@@ -69,6 +78,12 @@ export default async function sign(
 
     const { certificate } = certificateResponse;
 
+    const supportedSignatureAlgorithms = certificateResponse["supported-signature-algos"].map((algorithmSet) => ({
+      crypto:  algorithmSet["crypto-algo"],
+      hash:    algorithmSet["hash-algo"],
+      padding: algorithmSet["padding-algo"],
+    }));
+
     const prepareDocumentResult = await Promise.race([
       webServerService.fetch(postPrepareSigningUrl, {
         method: "POST",
@@ -78,7 +93,7 @@ export default async function sign(
           "Content-Type": "application/json",
         },
 
-        body: JSON.stringify({ certificate }),
+        body: JSON.stringify({ certificate, supportedSignatureAlgorithms }),
       }),
 
       throwAfterTimeout(
