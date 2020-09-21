@@ -64,18 +64,6 @@ export default async function sign(
       throw new Error("Missing signing certificate");
     }
 
-    console.log("Native app state", nativeAppService.state);
-
-    if (nativeAppService.state === NativeAppState.CONNECTED) {
-      nativeAppService.close();
-    }
-
-    nativeAppService = new NativeAppService();
-
-    nativeAppStatus = await nativeAppService.connect();
-
-    console.log("Sign: reconnected to native", nativeAppStatus);
-
     const { certificate } = certificateResponse;
 
     const supportedSignatureAlgorithms = certificateResponse["supported-signature-algos"].map((algorithmSet) => ({
@@ -102,8 +90,19 @@ export default async function sign(
       ),
     ]) as HttpResponse<{ hash: string; algorithm: string }>;
 
-    console.log("Sign: postPrepareSigningUrl fetched");
+    console.log("Sign: postPrepareSigningUrl fetched", prepareDocumentResult);
 
+    console.log("Native app state", nativeAppService.state);
+
+    if (nativeAppService.state === NativeAppState.CONNECTED) {
+      nativeAppService.close();
+    }
+
+    nativeAppService = new NativeAppService();
+
+    nativeAppStatus = await nativeAppService.connect();
+
+    console.log("Sign: reconnected to native", nativeAppStatus);
 
     const signatureResponse = await Promise.race([
       nativeAppService.send({
@@ -129,7 +128,7 @@ export default async function sign(
 
     const { signature } = signatureResponse;
 
-    console.log("Sign: user signature received from native app");
+    console.log("Sign: user signature received from native app", signature);
 
     const signatureVerifyResponse = await Promise.race([
       webServerService.fetch<any>(postFinalizeSigningUrl, {
@@ -152,7 +151,7 @@ export default async function sign(
       ),
     ]);
 
-    console.log("Sign: signature accepted by the server");
+    console.log("Sign: signature accepted by the server", signatureVerifyResponse);
 
     return {
       action: Action.SIGN_SUCCESS,
