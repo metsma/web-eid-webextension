@@ -61,7 +61,7 @@ export default async function sign(
     if (certificateResponse.error) {
       throw new Error(certificateResponse.error);
     } else if (!certificateResponse.certificate) {
-      throw new Error("Missing sign certificate");
+      throw new Error("Missing signing certificate");
     }
 
     console.log("Native app state", nativeAppService.state);
@@ -120,9 +120,10 @@ export default async function sign(
       throwAfterTimeout(userInteractionTimeout, new UserTimeoutError()),
     ]) as { signature: string; error: string };
 
-    if (certificateResponse.error) {
-      throw new Error(certificateResponse.error);
-    } else if (!certificateResponse.certificate) {
+    if (signatureResponse.error) {
+      throw new Error(signatureResponse.error);
+    } else if (!signatureResponse.signature) {
+
       throw new Error("Missing sign signature");
     }
 
