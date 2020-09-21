@@ -1,6 +1,6 @@
 {
   "name": "web-eid-webextension",
-  "version": "0.0.7",
+  "version": "0.1.1",
   "description": "",
   "main": "src/index.js",
   "scripts": {
@@ -24,12 +24,11 @@
     "@typescript-eslint/parser": "^2.31.0",
     "archiver": "^4.0.2",
     "eslint": "^6.8.0",
-    "ncp": "^2.0.0",
-    "rimraf": "^3.0.2",
+    "fs-extra": "^9.0.1",
     "rollup": "^2.8.2",
     "rollup-plugin-polyfill": "^3.0.0",
     "typescript": "^3.8.3",
-    "@web-eid/web-eid-library": "^0.0.7",
+    "@web-eid/web-eid-library": "^0.1.0",
     "webextension-polyfill": "^0.6.0"
   },
   "dependencies": {}

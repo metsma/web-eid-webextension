@@ -7,7 +7,7 @@ import { Port } from "../../models/Browser/Runtime";
 
 type NativeAppPendingRequest = { reject?: Function; resolve?: Function } | null;
 
-enum NativeAppState {
+export enum NativeAppState {
   UNINITIALIZED,
   CONNECTING,
   CONNECTED,
@@ -15,9 +15,9 @@ enum NativeAppState {
 }
 
 export default class NativeAppService {
-  private port: Port | null       = null;
-  private state: NativeAppState = NativeAppState.UNINITIALIZED;
+  public state: NativeAppState = NativeAppState.UNINITIALIZED;
 
+  private port: Port | null = null;
   private pending: NativeAppPendingRequest = null;
 
   async connect(): Promise<{ version: string }> {

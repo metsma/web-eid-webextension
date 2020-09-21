@@ -3,6 +3,7 @@ import libraryConfig from "@web-eid/web-eid-library/config";
 
 import { LibraryMessage } from "../models/LibraryMessage";
 import authenticate from "./actions/authenticate";
+import sign from "./actions/sign";
 import getStatus from "./actions/getStatus";
 
 browser.runtime.onMessage.addListener((message: LibraryMessage) => {
@@ -11,6 +12,15 @@ browser.runtime.onMessage.addListener((message: LibraryMessage) => {
       return authenticate(
         message.getAuthChallengeUrl,
         message.postAuthTokenUrl,
+        message.userInteractionTimeout || libraryConfig.DEFAULT_USER_INTERACTION_TIMEOUT,
+        message.serverRequestTimeout   || libraryConfig.DEFAULT_SERVER_REQUEST_TIMEOUT,
+      );
+
+    case Action.SIGN:
+      return sign(
+        message.postPrepareSigningUrl,
+        message.postFinalizeSigningUrl,
+        message.headers,
         message.userInteractionTimeout || libraryConfig.DEFAULT_USER_INTERACTION_TIMEOUT,
         message.serverRequestTimeout   || libraryConfig.DEFAULT_SERVER_REQUEST_TIMEOUT,
       );
