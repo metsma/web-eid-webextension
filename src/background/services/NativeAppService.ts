@@ -4,6 +4,7 @@ import libraryConfig from "@web-eid/web-eid-library/config";
 
 import config from "../../config";
 import { Port } from "../../models/Browser/Runtime";
+import { objectByteSize } from "../../shared/utils";
 
 type NativeAppPendingRequest = { reject?: Function; resolve?: Function } | null;
 
@@ -94,6 +95,13 @@ export default class NativeAppService {
           this.port?.onMessage.addListener(onResponse);
 
           console.log("Sending message to native app", JSON.stringify(message));
+
+          const messageSize = objectByteSize(message);
+
+          if (messageSize > config.NATIVE_MESSAGE_MAX_BYTES) {
+            throw new Error(`native application message exceeded ${config.NATIVE_MESSAGE_MAX_BYTES} bytes`);
+          }
+
           this.port?.postMessage(message);
         });
       }
