@@ -7,11 +7,13 @@ import { serializeError } from "@web-eid/web-eid-library/utils/errorSerializer";
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
 import { toBase64, pick, throwAfterTimeout } from "../../shared/utils";
-import HttpResponse from "src/models/HttpResponse";
+import HttpResponse from "../../models/HttpResponse";
+import TypedMap from "../../models/TypedMap";
 
 export default async function authenticate(
   getAuthChallengeUrl: string,
   postAuthTokenUrl: string,
+  headers: TypedMap<string>,
   userInteractionTimeout: number,
   serverRequestTimeout: number,
 ): Promise<object | void> {
@@ -35,7 +37,12 @@ export default async function authenticate(
     console.log("Authenticate: connected to native", nativeAppStatus);
 
     const response = await Promise.race([
-      webServerService.fetch(getAuthChallengeUrl),
+      webServerService.fetch(getAuthChallengeUrl, {
+        headers: {
+          ...headers,
+          "Content-Type": "application/json",
+        },
+      }),
 
       throwAfterTimeout(
         serverRequestTimeout,
@@ -71,6 +78,7 @@ export default async function authenticate(
         method: "POST",
 
         headers: {
+          ...headers,
           "Content-Type": "application/json",
         },
 
