@@ -2,13 +2,14 @@ import Action from "@web-eid/web-eid-library/models/Action";
 import ProtocolInsecureError from "@web-eid/web-eid-library/errors/ProtocolInsecureError";
 import UserTimeoutError from "@web-eid/web-eid-library/errors/UserTimeoutError";
 import ServerTimeoutError from "@web-eid/web-eid-library/errors/ServerTimeoutError";
+import OriginMismatchError from "@web-eid/web-eid-library/errors/OriginMismatchError";
 import { serializeError } from "@web-eid/web-eid-library/utils/errorSerializer";
 
 import NativeAppService from "../services/NativeAppService";
 import WebServerService from "../services/WebServerService";
-import { toBase64, pick, throwAfterTimeout } from "../../shared/utils";
-import HttpResponse from "../../models/HttpResponse";
 import TypedMap from "../../models/TypedMap";
+import HttpResponse from "../../models/HttpResponse";
+import { toBase64, pick, throwAfterTimeout, isSameOrigin } from "../../shared/utils";
 
 export default async function authenticate(
   getAuthChallengeUrl: string,
@@ -27,6 +28,10 @@ export default async function authenticate(
 
     if (!postAuthTokenUrl.startsWith("https:")) {
       throw new ProtocolInsecureError(`HTTPS required for postAuthTokenUrl ${postAuthTokenUrl}`);
+    }
+
+    if (!isSameOrigin(getAuthChallengeUrl, postAuthTokenUrl)) {
+      throw new OriginMismatchError();
     }
 
     webServerService = new WebServerService();

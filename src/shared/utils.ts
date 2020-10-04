@@ -85,3 +85,9 @@ export function objectByteSize(object: any): number {
 
   return objectStringBlob.size;
 }
+
+export function isSameOrigin(...urls: string[]): boolean {
+  const origins = urls.map((url) => (new URL(url)).origin);
+
+  return origins.every((origin) => origins[0] === origin);
+}
