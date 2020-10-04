@@ -79,7 +79,7 @@ export async function throwAfterTimeout(milliseconds: number, error: Error): Pro
   throw error;
 }
 
-export function objectByteSize(object: any) {
+export function objectByteSize(object: any): number {
   const objectString     = JSON.stringify(object);
   const objectStringBlob = new Blob([objectString]);
 
