@@ -12,6 +12,7 @@ browser.runtime.onMessage.addListener((message: LibraryMessage) => {
       return authenticate(
         message.getAuthChallengeUrl,
         message.postAuthTokenUrl,
+        message.headers,
         message.userInteractionTimeout || libraryConfig.DEFAULT_USER_INTERACTION_TIMEOUT,
         message.serverRequestTimeout   || libraryConfig.DEFAULT_SERVER_REQUEST_TIMEOUT,
       );
