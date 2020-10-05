@@ -85,3 +85,10 @@ export function objectByteSize(object: any): number {
 
   return objectStringBlob.size;
 }
+
+export function isSameOrigin(url1: string, url2: string): boolean {
+  const origin1 = new URL(url1).origin;
+  const origin2 = new URL(url2).origin;
+
+  return origin1 === origin2;
+}
