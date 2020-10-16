@@ -23,10 +23,14 @@ export function cp(source, destination) {
   return fs.copy(source, destination);
 }
 
-export function rm(pathToRemove) {
-  console.log(`REMOVE ${pathToRemove}`);
+export async function rm(globPattern) {
+  console.log(`REMOVE ${globPattern}`);
 
-  return fs.remove(pathToRemove);
+  const files = await findFiles(globPattern);
+
+  return await Promise.all(
+    files.map((file) => fs.remove(file))
+  );
 }
 
 export function exec(command, args = []) {
