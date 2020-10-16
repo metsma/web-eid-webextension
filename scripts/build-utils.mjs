@@ -3,6 +3,7 @@ import path from "path";
 
 import fs from "fs-extra"
 import archiver from "archiver";
+import glob from 'glob';
 
 export const pkg = JSON.parse(fs.readFileSync("./package.json", 'utf8'));
 
@@ -47,10 +48,12 @@ export function exec(command, args = []) {
   });
 }
 
-export function zip(source, destination) {
+export async function zip(source, destination, date) {
   console.log(`ZIP ${source} → ${destination}`);
 
-  return new Promise((resolve, reject) => {
+  const files = await findFiles(source + "/**/*.*");
+
+  return await new Promise((resolve, reject) => {
     const output  = fs.createWriteStream(path.resolve(destination));
     const archive = archiver("zip");
 
@@ -58,16 +61,16 @@ export function zip(source, destination) {
       resolve();
     });
 
-    archive.on('warning', function (error) {
-      reject(error);
-    });
-
-    archive.on("error", function(error) {
+    archive.on("error", function (error) {
       reject(error);
     });
 
     archive.pipe(output);
-    archive.directory(source, false);
+
+    files.forEach((file) => {
+      archive.append(fs.createReadStream(file), { name: path.relative(source, file), date });
+    });
+
     archive.finalize();
   });
 }
@@ -87,4 +90,34 @@ export function replace(filename, from, to) {
       reject(error);
     }
   });
+}
+
+export function findFiles(globPattern) {
+  return new Promise((resolve, reject) => {
+    glob(globPattern, (error, matches) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(matches);
+      }
+    });
+  });
+}
+
+export function sourceDateEpoch() {
+  const now = new Date();
+
+  if (process.env.SOURCE_DATE_EPOCH) {
+    const sourceDate = new Date((process.env.SOURCE_DATE_EPOCH * 1000) + (now.getTimezoneOffset() * 60000));
+
+    console.log(`SOURCE_DATE_EPOCH=${process.env.SOURCE_DATE_EPOCH} # ${sourceDate.toString()}\n`);
+
+    return sourceDate;
+  } else {
+    console.warn(`SOURCE_DATE_EPOCH not set, using current time ${now.toString()}`);
+    console.warn("For a reproducible build, please set the SOURCE_DATE_EPOCH environment variable.");
+    console.warn("See https://reproducible-builds.org/docs/source-date-epoch for details.\n");
+
+    return now;
+  }
 }

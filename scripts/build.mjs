@@ -1,22 +1,4 @@
-// "lint": "eslint . --ext .ts",
-// "build": "npm run clean_all && npm run compile && npm run bundle && npm run clean_bundle_temp_files && npm run after_bundle",
-// "clean_all": "rimraf ./dist",
-// "clean_bundle_temp_files": "rimraf ./dist/firefox/*/ ./dist/firefox/config.*",
-
-// "cp_dist_chrome": "cp -R ./dist/firefox ./dist/chrome",
-// "cp_static_icons": "cp -R ./static/icons ./dist/firefox",
-// "cp_static_firefox": "cp -R ./static/firefox/* ./dist/firefox",
-// "cp_static_chrome": "cp -R ./static/chrome/* ./dist/chrome",
-
-
-
-// "after_bundle": "npm run cp_static_icons && npm run cp_dist_chrome && npm run cp_static_firefox && npm run cp_static_chrome",
-
-// "compile": "tsc",
-// "bundle": "rollup -c",
-// "test": "echo \"Error: no test specified\" && exit 1"
-
-import { cp, rm, exec, zip, replace, rem, pkg } from "./build-utils.mjs";
+import { cp, rm, exec, zip, replace, rem, pkg, sourceDateEpoch } from "./build-utils.mjs";
 
 const targets = {
   async clean() {
@@ -83,8 +65,10 @@ const targets = {
     rem(
       "Creating packages"
     )
-    await zip("./dist/firefox", "./dist/firefox.zip");
-    await zip("./dist/chrome", "./dist/chrome.zip");
+    const date = sourceDateEpoch();
+
+    await zip("./dist/firefox", "./dist/firefox.zip", date);
+    await zip("./dist/chrome", "./dist/chrome.zip", date);
   }
 };
 
