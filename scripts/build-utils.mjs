@@ -55,7 +55,7 @@ export function exec(command, args = []) {
 export async function zip(source, destination, date) {
   console.log(`ZIP ${source} → ${destination}`);
 
-  const files = await findFiles(source + "/**/*.*");
+  const files = (await findFiles(source + "/**")).filter((location) => fs.lstatSync(location).isFile());
 
   return await new Promise((resolve, reject) => {
     const output  = fs.createWriteStream(path.resolve(destination));
@@ -108,20 +108,32 @@ export function findFiles(globPattern) {
   });
 }
 
-export function sourceDateEpoch() {
-  const now = new Date();
+export async function getSourceDateEpoch() {
+  const isDefined = !!process.env.SOURCE_DATE_EPOCH;
+  const now       = new Date();
+  const epoch     = process.env.SOURCE_DATE_EPOCH || Math.floor(now.getTime() / 1000);
+  const date      = new Date(epoch * 1000);
 
-  if (process.env.SOURCE_DATE_EPOCH) {
-    const sourceDate = new Date((process.env.SOURCE_DATE_EPOCH * 1000) + (now.getTimezoneOffset() * 60000));
-
-    console.log(`SOURCE_DATE_EPOCH=${process.env.SOURCE_DATE_EPOCH} # ${sourceDate.toString()}\n`);
-
-    return sourceDate;
+  if (isDefined) {
+    console.log(`SOURCE_DATE_EPOCH=${process.env.SOURCE_DATE_EPOCH} # ${date.toString()}`);
   } else {
-    console.warn(`SOURCE_DATE_EPOCH not set, using current time ${now.toString()}`);
-    console.warn("For a reproducible build, please set the SOURCE_DATE_EPOCH environment variable.");
-    console.warn("See https://reproducible-builds.org/docs/source-date-epoch for details.\n");
+    console.warn("WARN SOURCE_DATE_EPOCH not set!");
+    console.warn(`WARN using current time ${date.toString()}`);
+    console.warn("WARN For a reproducible build, please set the SOURCE_DATE_EPOCH environment variable.");
+    console.warn("WARN See README.md for details.\n");
 
-    return now;
+    // Pause for 3 seconds, to make noticing the warning easier.
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
+
+  return {
+    date,
+    epoch
+  };
+}
+
+export async function write(filename, data) {
+  console.log(`WRITE ${data} → ${filename}`);
+
+  await fs.writeFile(filename, data);
 }

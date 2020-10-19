@@ -1,4 +1,6 @@
-import { cp, rm, exec, zip, replace, rem, pkg, sourceDateEpoch } from "./build-utils.mjs";
+import { cp, rm, exec, zip, replace, rem, pkg, write, getSourceDateEpoch } from "./build-utils.mjs";
+
+let sourceDateEpoch;
 
 const targets = {
   async clean() {
@@ -35,6 +37,12 @@ const targets = {
     await rm("./dist/firefox/config.*");
 
     rem(
+      "Setting up SOURCE_DATE_EPOCH for reproducible builds"
+    );
+    sourceDateEpoch = await getSourceDateEpoch();
+    await write("./dist/firefox/SOURCE_DATE_EPOCH", sourceDateEpoch.epoch);
+
+    rem(
       "Copying icons"
     );
     await cp("./static/icons", "./dist/firefox/icons");
@@ -64,11 +72,9 @@ const targets = {
   async package() {
     rem(
       "Creating packages"
-    )
-    const date = sourceDateEpoch();
-
-    await zip("./dist/firefox", "./dist/firefox.zip", date);
-    await zip("./dist/chrome", "./dist/chrome.zip", date);
+    );
+    await zip("./dist/firefox", "./dist/firefox.zip", sourceDateEpoch.date);
+    await zip("./dist/chrome", "./dist/chrome.zip", sourceDateEpoch.date);
   }
 };
 

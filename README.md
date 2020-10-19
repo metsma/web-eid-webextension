@@ -23,9 +23,15 @@
     npm run clean build package
     ```
 
-    For reproducible builds, set the `SOURCE_DATE_EPOCH` environment variable.
+    For reproducible builds, set the `SOURCE_DATE_EPOCH` environment variable.  
+    See [https://reproducible-builds.org/docs/source-date-epoch](https://reproducible-builds.org/docs/source-date-epoch) for details.
     ```bash
     SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct) npm run clean build package
+    ```
+
+    Alternatively, for reproducible builds, the `SOURCE_DATE_EPOCH` value can be taken from the `SOURCE_DATE_EPOCH` file of a previous build.
+    ```bash
+    SOURCE_DATE_EPOCH=$(cat ../previous-build/dist/firefox/SOURCE_DATE_EPOCH) npm run clean build package
     ```
 
 5. Load in Firefox as a Temporary Extension
