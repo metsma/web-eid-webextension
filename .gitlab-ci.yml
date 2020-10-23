@@ -6,6 +6,7 @@ cache:
 
 .build_package:
   script:
+    - export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
     - npm install
     - npm run clean build package
 

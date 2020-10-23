@@ -1,22 +1,6 @@
-// "lint": "eslint . --ext .ts",
-// "build": "npm run clean_all && npm run compile && npm run bundle && npm run clean_bundle_temp_files && npm run after_bundle",
-// "clean_all": "rimraf ./dist",
-// "clean_bundle_temp_files": "rimraf ./dist/firefox/*/ ./dist/firefox/config.*",
+import { cp, rm, exec, zip, replace, rem, pkg, write, getSourceDateEpoch } from "./build-utils.mjs";
 
-// "cp_dist_chrome": "cp -R ./dist/firefox ./dist/chrome",
-// "cp_static_icons": "cp -R ./static/icons ./dist/firefox",
-// "cp_static_firefox": "cp -R ./static/firefox/* ./dist/firefox",
-// "cp_static_chrome": "cp -R ./static/chrome/* ./dist/chrome",
-
-
-
-// "after_bundle": "npm run cp_static_icons && npm run cp_dist_chrome && npm run cp_static_firefox && npm run cp_static_chrome",
-
-// "compile": "tsc",
-// "bundle": "rollup -c",
-// "test": "echo \"Error: no test specified\" && exit 1"
-
-import { cp, rm, exec, zip, replace, rem, pkg } from "./build-utils.mjs";
+let sourceDateEpoch;
 
 const targets = {
   async clean() {
@@ -53,6 +37,12 @@ const targets = {
     await rm("./dist/firefox/config.*");
 
     rem(
+      "Setting up SOURCE_DATE_EPOCH for reproducible builds"
+    );
+    sourceDateEpoch = await getSourceDateEpoch();
+    await write("./dist/firefox/SOURCE_DATE_EPOCH", sourceDateEpoch.epoch);
+
+    rem(
       "Copying icons"
     );
     await cp("./static/icons", "./dist/firefox/icons");
@@ -82,9 +72,9 @@ const targets = {
   async package() {
     rem(
       "Creating packages"
-    )
-    await zip("./dist/firefox", "./dist/firefox.zip");
-    await zip("./dist/chrome", "./dist/chrome.zip");
+    );
+    await zip("./dist/firefox", "./dist/firefox.zip", sourceDateEpoch.date);
+    await zip("./dist/chrome", "./dist/chrome.zip", sourceDateEpoch.date);
   }
 };
 

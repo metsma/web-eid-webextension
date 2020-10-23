@@ -3,6 +3,7 @@ import path from "path";
 
 import fs from "fs-extra"
 import archiver from "archiver";
+import glob from 'glob';
 
 export const pkg = JSON.parse(fs.readFileSync("./package.json", 'utf8'));
 
@@ -22,10 +23,14 @@ export function cp(source, destination) {
   return fs.copy(source, destination);
 }
 
-export function rm(pathToRemove) {
-  console.log(`REMOVE ${pathToRemove}`);
+export async function rm(globPattern) {
+  console.log(`REMOVE ${globPattern}`);
 
-  return fs.remove(pathToRemove);
+  const files = await findFiles(globPattern);
+
+  return await Promise.all(
+    files.map((file) => fs.remove(file))
+  );
 }
 
 export function exec(command, args = []) {
@@ -47,10 +52,12 @@ export function exec(command, args = []) {
   });
 }
 
-export function zip(source, destination) {
+export async function zip(source, destination, date) {
   console.log(`ZIP ${source} → ${destination}`);
 
-  return new Promise((resolve, reject) => {
+  const files = (await findFiles(source + "/**")).filter((location) => fs.lstatSync(location).isFile());
+
+  return await new Promise((resolve, reject) => {
     const output  = fs.createWriteStream(path.resolve(destination));
     const archive = archiver("zip");
 
@@ -58,16 +65,16 @@ export function zip(source, destination) {
       resolve();
     });
 
-    archive.on('warning', function (error) {
-      reject(error);
-    });
-
-    archive.on("error", function(error) {
+    archive.on("error", function (error) {
       reject(error);
     });
 
     archive.pipe(output);
-    archive.directory(source, false);
+
+    files.forEach((file) => {
+      archive.append(fs.createReadStream(file), { name: path.relative(source, file), date });
+    });
+
     archive.finalize();
   });
 }
@@ -87,4 +94,46 @@ export function replace(filename, from, to) {
       reject(error);
     }
   });
+}
+
+export function findFiles(globPattern) {
+  return new Promise((resolve, reject) => {
+    glob(globPattern, (error, matches) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(matches);
+      }
+    });
+  });
+}
+
+export async function getSourceDateEpoch() {
+  const isDefined = !!process.env.SOURCE_DATE_EPOCH;
+  const now       = new Date();
+  const epoch     = process.env.SOURCE_DATE_EPOCH || Math.floor(now.getTime() / 1000);
+  const date      = new Date(epoch * 1000);
+
+  if (isDefined) {
+    console.log(`SOURCE_DATE_EPOCH=${process.env.SOURCE_DATE_EPOCH} # ${date.toString()}`);
+  } else {
+    console.warn("WARN SOURCE_DATE_EPOCH not set!");
+    console.warn(`WARN using current time ${date.toString()}`);
+    console.warn("WARN For a reproducible build, please set the SOURCE_DATE_EPOCH environment variable.");
+    console.warn("WARN See README.md for details.\n");
+
+    // Pause for 3 seconds, to make noticing the warning easier.
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  }
+
+  return {
+    date,
+    epoch
+  };
+}
+
+export async function write(filename, data) {
+  console.log(`WRITE ${data} → ${filename}`);
+
+  await fs.writeFile(filename, data);
 }
