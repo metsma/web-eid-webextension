@@ -1,5 +1,7 @@
 import NativeUnavailableError from "@web-eid/web-eid-library/errors/NativeUnavailableError";
-import UserCancelledError from "@web-eid/web-eid-library/errors/UserCancelledError";
+import UnknownError from "@web-eid/web-eid-library/errors/UnknownError";
+import { deserializeError } from "@web-eid/web-eid-library/utils/errorSerializer";
+
 import libraryConfig from "@web-eid/web-eid-library/config";
 
 import config from "../../config";
@@ -67,7 +69,7 @@ export default class NativeAppService {
     chrome?.runtime?.lastError;
 
     this.state = NativeAppState.DISCONNECTED;
-    this.pending?.reject?.(new UserCancelledError());
+    this.pending?.reject?.(new UnknownError("native application closed the connection before a response"));
     this.pending = null;
   }
 
@@ -80,15 +82,19 @@ export default class NativeAppService {
     this.port?.disconnect();
   }
 
-  send<T extends object>(message: object): Promise<T> {
+  send<T extends any>(message: object): Promise<T> {
     switch (this.state) {
       case NativeAppState.CONNECTED: {
         return new Promise((resolve, reject) => {
           this.pending = { resolve, reject };
 
-          const onResponse = (message: T): void => {
+          const onResponse = (message: any): void => {
             this.port?.onMessage.removeListener(onResponse);
-            resolve(message);
+            if (message.error) {
+              reject(deserializeError(message.error));
+            } else {
+              resolve(message);
+            }
             this.pending = null;
           };
 
@@ -139,7 +145,11 @@ export default class NativeAppService {
 
       const onMessageListener = (message: any): void => {
         cleanup?.();
-        resolve(message);
+        if (message.error) {
+          reject(deserializeError(message.error));
+        } else {
+          resolve(message);
+        }
       };
 
       const onDisconnectListener = (): void => {
